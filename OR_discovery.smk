@@ -2,8 +2,9 @@ import pandas as pd
 
 SAMPLES = pd.read_csv('table.csv')
 GENOMES = dict(zip(SAMPLES.prefix, SAMPLES.genome))
-
 PREFIXES = SAMPLES.prefix.tolist()
+
+DEEPTMHMM_DIR = "/usr/local/usrapps/stern/mwvandew/DeepTMHMM-Academic-License-v1.0" 
 
 rule all:
   input:
@@ -212,8 +213,6 @@ rule extract_orf:
         -t {input.intact} \
         --output_dir {params.output_dir}
     ''' 
-
-DEEPTMHMM_DIR = "/usr/local/usrapps/stern/mwvandew/DeepTMHMM-Academic-License-v1.0" 
 
 rule deep_tm_hmm:
   input:
