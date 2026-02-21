@@ -1,7 +1,7 @@
 # OR discovery workflow
 
 ## This workflow was used to discover, extract, and annotate in Cockrin et al 20xx. OR seqs are annotated to the level of intact, truncated and pseudogene sequences.
-### workflow is written in snakemake 7.19.1 with conda environments present in `envs/`
+### workflow is written in snakemake 7.19.1 with conda environments present in `env/`
 
 ### Prerequisites
 
