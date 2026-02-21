@@ -61,4 +61,4 @@ wget https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/050/000/095/GCA_050000095.1_rI
 wget https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/049/999/965/GCA_049999965.1_rHydTec1.pri/GCA_049999965.1_rHydTec1.pri_genomic.fna.gz
 wget https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/050/000/005/GCA_050000005.1_rPodUni1.pri/GCA_050000005.1_rPodUni1.pri_genomic.fna.gz
 wget https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/049/634/645/GCA_049634645.1_ASM4963464v1/GCA_049634645.1_ASM4963464v1_genomic.fna.gz
-gunzip *.fna
+gunzip *.gz
