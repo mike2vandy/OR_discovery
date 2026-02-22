@@ -4,7 +4,7 @@ SAMPLES = pd.read_csv('table.csv')
 GENOMES = dict(zip(SAMPLES.prefix, SAMPLES.genome))
 PREFIXES = SAMPLES.prefix.tolist()
 
-DEEPTMHMM_DIR = "/usr/local/usrapps/stern/mwvandew/DeepTMHMM-Academic-License-v1.0" 
+DEEPTMHMM_DIR = "/path/to/DeepTMHMM-Academic-License-vX.X" 
 
 rule all:
   input:
