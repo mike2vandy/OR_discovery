@@ -8,7 +8,19 @@
 #### conda
 #### snakemake
 #### deeptmhmm
-A local / academic version of deeptmhmm is needed from `https://dtu.biolib.com/DeepTMHMM`. To install, follow instruction from `https://www.polarmicrobes.org/local-installation-of-deeptmhmm/` with a modification of removing the line `torch==1.5.0+cu92` from `requirements.txt`. Beware deeptmhmm uses all available processors on a computer. 
+A local / academic version of deeptmhmm is needed from `https://dtu.biolib.com/DeepTMHMM`. To install, create new conda environment for dependecies:
+```
+conda create -n deeptmhmm -c python=3.8
+conda activate deeptmhmm
+python3 -m pip install wheel Cython==0.29.37 pkgconfig==1.5.5
+pip install torch==2.0.1
+```  
+Enter the DeepTMHMM directory, remove torch==1.5.0+cu92 from requirements.txt  
+```
+python3 -m pip install -r requirements.txt
+```
+
+!!Beware deeptmhmm uses all available processors on a computer. 
 
 The variable `DEEPTMHMM_DIR` in the snakemake script will need to be modified to reflect the full path of the deeptmhmm directory.
 
