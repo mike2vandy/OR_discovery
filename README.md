@@ -24,4 +24,6 @@ The variable `DEEPTMHMM_DIR` in the snakemake script will need to be modified to
   - <species_prefix>.copmplete_pseudo.bed: genome coordinates of OR genes that failed to meet intact parameters.
   - <species_prefix>.complete_truncated.bed: genome coordinates of OR genes that were too close to the end of a chromosome or assembly gap to assign intact or pseudogene status.
 
-### General flowchart of the OR discory pipeline. 
+### General flowchart of the OR discory pipeline.
+
+!(images/flowchart.png) 
