@@ -8,21 +8,9 @@
 #### conda
 #### snakemake
 #### deeptmhmm
-A local / academic version of deeptmhmm is needed from `https://dtu.biolib.com/DeepTMHMM`. To install, create new conda environment for dependecies:
-```
-conda create -n deeptmhmm -c python=3.8
-conda activate deeptmhmm
-python3 -m pip install wheel Cython==0.29.37 pkgconfig==1.5.5
-pip install torch==2.0.1
-```  
-Enter the DeepTMHMM directory, remove torch==1.5.0+cu92 from requirements.txt  
-```
-python3 -m pip install -r requirements.txt
-```
-
-!!Beware deeptmhmm uses all available processors on a computer. 
-
-The variable `DEEPTMHMM_DIR` in the snakemake script will need to be modified to reflect the full path of the deeptmhmm directory.
+A local / academic version of deeptmhmm is needed from `https://dtu.biolib.com/DeepTMHMM`. All depencies are in `envs/deeptmhmm.yaml`.  
+The variable `DEEPTMHMM_DIR` in the snakemake script will need to be modified to reflect the full path of the deeptmhmm directory.  
+!!Beware deeptmhmm uses all available processors on a computer!!  
 
 ## Steps to run to replicate results in Cockrin et al 20xx.
 
@@ -39,3 +27,5 @@ The variable `DEEPTMHMM_DIR` in the snakemake script will need to be modified to
 ### General flowchart of the OR discory pipeline.
 
 ![](images/flowchart.png) 
+
+To annotate ORs for you own purposes, store unique genomes in fasta format in `genomes`, modify `table.csv` to reflect genome names and desired prefixes, provide a query of OR aa sequences in fasta format to replace `query/intact.ORs.fas`
