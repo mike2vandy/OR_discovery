@@ -26,4 +26,4 @@ The variable `DEEPTMHMM_DIR` in the snakemake script will need to be modified to
 
 ### General flowchart of the OR discory pipeline.
 
-!(images/flowchart.png) 
+![](images/flowchart.png) 
