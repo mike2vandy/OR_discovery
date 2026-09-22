@@ -1,10 +1,10 @@
 import pandas as pd
 
-SAMPLES = pd.read_csv('table.csv')
+SAMPLES = pd.read_csv(config['input_table'])
 GENOMES = dict(zip(SAMPLES.prefix, SAMPLES.genome))
 PREFIXES = SAMPLES.prefix.tolist()
 
-DEEPTMHMM_DIR = "/path/to/DeepTMHMM-Academic-License-vX.X" 
+DEEPTMHMM_DIR = config['deep_tmhmm_dir']
 
 rule all:
   input:
@@ -25,7 +25,7 @@ rule prepare_genomes:
   threads: 1
   resources:
     mem_mb = 20000,
-    time = 20
+    runtime = 20
   shell:
     '''
        makeblastdb \
@@ -41,7 +41,7 @@ rule prepare_genomes:
 rule tblastn:
   input:
     db = "genome_dbs/{prefix}.ndb",
-    query = "query/intact.ORs.fas"
+    query = config['query_fasta']
   output:
     blast = "output/{prefix}/blast/{prefix}.blast.out",
   params:
@@ -51,8 +51,8 @@ rule tblastn:
   conda: "env/or_env.yaml"
   threads: 16
   resources:
-    meem_mb = 40000,
-    time = 1200
+    mem_mb = 40000,
+    runtime = 1200
   shell:
     '''
       tblastn \
@@ -73,7 +73,7 @@ rule blast_to_bed:
   threads: 1
   resources:
     mem_mb = 20000,
-    time = 10
+    runtime = 10
   shell:
     '''
       awk '{{if ($9 > $10) {{print $2"\t"$10"\t"$9}} \
@@ -93,7 +93,7 @@ rule sort_hits:
   threads: 1
   resources:
     mem_mb = 20000,
-    time = 10
+    runtime = 10
   run:    
     #define global variables
     genome_dict = {}
@@ -147,7 +147,7 @@ rule extract_intact:
   threads: 1
   resources:
     mem_mb = 20000,
-    time = 10
+    runtime = 10
   shell:
     '''
       bedtools getfasta \
@@ -165,7 +165,7 @@ rule remove_truncated:
   threads: 1
   resources:
     mem_mb = 20000,
-    time = 10
+    runtime = 10
   run:
     #files
     truncated_file = open(output.trunc, 'a')
@@ -196,7 +196,8 @@ rule extract_orf:
   input:
     intact = 'output/{prefix}/intact_fas/{prefix}.intact_2.fas'
   output:
-    aa = 'output/{prefix}/intact_fas/{prefix}.intact_2.fas.transdecoder_dir/longest_orfs.pep'
+    aa  = 'output/{prefix}/intact_fas/{prefix}.intact_2.fas.transdecoder.pep',
+    cds = 'output/{prefix}/intact_fas/{prefix}.intact_2.fas.transdecoder.cds' 
   params:
     output_dir = 'output/{prefix}/intact_fas/',
     aa_length = 250
@@ -204,7 +205,7 @@ rule extract_orf:
   threads: 1
   resources:
     mem_mb = 20000,
-    time = 20
+    runtime = 20
   shell:
     '''
       TransDecoder.LongOrfs \
@@ -212,23 +213,30 @@ rule extract_orf:
         -m {params.aa_length} \
         -t {input.intact} \
         --output_dir {params.output_dir}
+
+      TransDecoder.Predict \
+	-t {input.intact} \
+	--output_dir {params.output_dir}
     ''' 
 
 rule deep_tm_hmm:
   input:
-    pep = 'output/{prefix}/intact_fas/{prefix}.intact_2.fas.transdecoder_dir/longest_orfs.pep'
+    pep = 'output/{prefix}/intact_fas/{prefix}.intact_2.fas.transdecoder.pep'
   output:
     tmm = directory("output/{prefix}/intact_fas/deep_tm_out")
   params:
     app = DEEPTMHMM_DIR 
   conda: 'env/deeptmhmm.yaml'
-  threads: 32
+  threads: 8
   resources:
-    gpu = 8,
-    mem_mb = 60000,
-    time = 1200
+    #slurm_partition = "msigpu",
+    #gres = "gpu:1",
+    mem_mb = 40000,
+    runtime = 360
   shell:
     '''
+
+      export DEEPTMHMM_THREADS={threads}
       (
       cd {params.app}
 
@@ -241,7 +249,7 @@ rule deep_tm_hmm:
 rule parse_tm:
   input:
     tmm = rules.deep_tm_hmm.output.tmm,
-    peps = 'output/{prefix}/intact_fas/{prefix}.intact_2.fas.transdecoder_dir/longest_orfs.pep', 
+    peps = 'output/{prefix}/intact_fas/{prefix}.intact_2.fas.transdecoder.pep', 
     prelim_intact = 'output/{prefix}/intact_fas/{prefix}.intact_2.fas' 
   output:
     intact = 'output/{prefix}/intact_fas/{prefix}.complete_intact.fas',
@@ -249,7 +257,7 @@ rule parse_tm:
   threads: 1
   resources:
     meme_mb = 20000,
-    time = 20
+    runtime = 20
   run:
     #load in transdecoder peps
     aas = {}
@@ -315,6 +323,9 @@ rule final_gather:
   params:
     prefix = "{prefix}"
   threads: 1
+  resources:
+    mem_mb = 20000,
+    runtime = 10
   shell:
     '''
       cat {input.trunc1} {input.trunc2} > {output.final_trunc}
