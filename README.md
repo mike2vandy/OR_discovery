@@ -1,27 +1,52 @@
 # OR discovery workflow
 
-## This workflow was used to discover, extract, and annotate in Cockrin et al 20xx. OR seqs are annotated to the level of intact, truncated and pseudogene sequences.
-### workflow is written in snakemake 9.27 with conda environments present in `env/`
+## This workflow was used to discover, extract, and annotate in Cockrin et al 20xx. OR seqs are extracted from whole genome drafts and annotated to the level of intact, truncated and pseudogene sequences.
+### The current workflow is written in snakemake 9.27 utilizing conda environments present in `env/`. The workflow is designed to perform best on a scheduled HPC with slurm, LSF, etc., but could theoretically be run on a local desktop, just very slowly and may require resource re-configuration.
 
-### Prerequisites
+### The following prerequisites are required:
 
-#### conda
-#### snakemake 9
-#### deeptmhmm
-A local academic version of deeptmhmm is needed from `https://dtu.biolib.com/DeepTMHMM`. All depencies are in `envs/deeptmhmm.yaml. Unzip DeepTMHMM 
-`unzip DeepTMHMM-Academic-License-v1.0.zip`
+#### conda or mamba
+#### snakemake v9
+#### A local copy of DeepTMHMM.
 
-Update the path of DEEPTMHMM_DIR in config.  
-The variable `DEEPTMHMM_DIR` in the snakemake script will need to be modified to reflect the full path of the deeptmhmm directory.  
+### Installing snakemake: 
+`conda create -n snakemake -c conda-forge snakemake=9`  
 
-update predict.py code with:
+#### I ran this workflow with a slurm scheduler with snakemake-executor-plugins, which required.
+`pip install snakemake-executor-plugin-slurm`
 
+#### Howver this may need to be adjusted for your particular HPC and scheduler, i.e.:
+`pip install snakemake-executor-plugin-<scheduler>`
+
+### Installing DeepTMHMM:
+
+1. A local academic version of DeepTMHMM is required from: `https://dtu.biolib.com/DeepTMHMM`. 
+
+  - `unzip DeepTMHMM-Academic-License-v1.0.zip`
+
+2. DeepTMHMM is cpu greedy. Once unzipped, you'll need to modify lines in `predict.py`
+
+```
+#Update these two lines lines:
+
+torch.set_num_threads(os.cpu_count())
+torch.set_num_interop_threads(os.cpu_count() + 2)
+
+#To 
 n_threads = int(os.environ.get("DEEPTMHMM_THREADS", 1))
 
 torch.set_num_threads(n_threads)
 torch.set_num_interop_threads(n_threads + 2)
+```
 
-pip executor
+3. Update the `DEEPTMHMM_DIR` variable in your config file to the full path of your local installation.  
+
+
+
+
+
+
+
 
 ## Table notes
 
@@ -29,8 +54,7 @@ pip executor
  
 ## Steps to run to replicate results in Cockrin et al 20xx.
 
-1. Create a conda environment that contains snakemake 9.
-   - `conda install mamba`
+- `conda install mamba`
    - `mamba create -n snakemake -c bioconda -c conda-forge snakemake=9` 
 
 1. Enter `genomes/` and run the `get_genomes.sh` bash script to download and unzip turtle genomes.
