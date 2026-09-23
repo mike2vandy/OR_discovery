@@ -93,7 +93,7 @@ snakemake \
         --configfile turtle_test.yaml 
         --sdm conda \ 
         --executor slurm \
-        --jobs 20 \
+        --jobs 20 
      ```
    - You can include the `-n` flag to perform a dry run to ensure the workflow is performing properly before submitting.
 
