@@ -1,0 +1,4 @@
+
+input_table    : table.tst.csv
+deep_tmhmm_dir : /users/3/mvandewe/software/DeepTMHMM-Academic-License-v1.0
+query_fasta    : query/intact_reduced.ORs.fas
