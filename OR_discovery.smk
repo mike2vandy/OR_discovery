@@ -229,8 +229,6 @@ rule deep_tm_hmm:
   conda: 'env/deeptmhmm.yaml'
   threads: 8
   resources:
-    #slurm_partition = "msigpu",
-    #gres = "gpu:1",
     mem_mb = 40000,
     runtime = 360
   shell:
