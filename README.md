@@ -1,6 +1,6 @@
 # OR discovery workflow
 
-## This workflow was used to discover, extract, and annotate Olfactor Receptor (OR) genes from turtle genomes in Cockrin et al 20xx. OR sequences are extracted from whole genome drafts and annotated to the level of intact, truncated and pseudogene sequences.
+## This workflow was used to discover, extract, and annotate Olfactor Receptor (OR) genes from turtle genomes in Conklin et al 20xx. OR sequences are extracted from whole genome drafts and annotated to the level of intact, truncated and pseudogene sequences.
 ### The current workflow is written in snakemake 9.27 utilizing conda environments present in `env/`. The workflow is designed to perform best on a scheduled HPC with slurm, LSF, etc., but could run on a local desktop or server but may require resource re-configuration.
 
 ### The following prerequisites are required:
@@ -53,7 +53,7 @@ deep_tmhmm_dir : /path/to/DeepTMHMM-Academic-License-v1.0
 query_fasta    : query/intact_reduced.ORs.fas
 ```
 
-  - input_table. this is a variable that holds the name of a csv file containing names of genome.fasta files you want to search, and short names that will be used as prefixes throughout the workflow. To query all turtle genomes in Cockrin et al. change to table.full.csv
+  - input_table. this is a variable that holds the name of a csv file containing names of genome.fasta files you want to search, and short names that will be used as prefixes throughout the workflow. To query all turtle genomes in Conklin et al. change to table.full.csv
   - deep_tmhmm_dir. See above
   - query_fasta. Set this variable to the path of a fasta file that will serve as the blast query. Currently `intact_reduced.ORs.fas` is listed, which represents a subset of `intact.ORs.fas` that created by running `cd-hit` with 80% similarity on `intact.ORs.fas`. All ORs were discovered in Sauropsid (bird and reptile) genomes. 
 
@@ -80,7 +80,7 @@ snakemake \
         --jobs 20 # number of jobs allowed to simultaneously run on a scheduler
 ```
 
-## Replicating results in Cockrin et al 20xx:
+## Replicating results in Conklin et al 20xx:
 ### Once the prerequisites are installed:
 
 1. Enter `genomes/` and run the `get_genomes.sh` bash script to download and unzip all queried turtle genomes.
