@@ -10,17 +10,18 @@ rule all:
   input:
     expand('output/{prefix}/final/{prefix}.complete_truncated.bed', prefix = PREFIXES),
     expand('output/{prefix}/final/{prefix}.complete_pseudo.bed', prefix = PREFIXES),
-    expand('output/{prefix}/final/{prefix}.complete_intact.fas', prefix = PREFIXES)
+    expand('output/{prefix}/final/{prefix}.aa.complete_intact.fas', prefix = PREFIXES),
+    expand('output/{prefix}/final/{prefix}.cds.complete_intact.fas', prefix = PREFIXES)
     
 rule prepare_genomes:
   input:
     fas = lambda wildcards: f"genomes/{GENOMES[wildcards.prefix]}"
   output:
-    db = "genome_dbs/{prefix}.ndb",
-    fai = "genome_dbs/{prefix}.fai"
+    db = "genome_dbs/{prefix}/{prefix}.ndb",
+    fai = "genome_dbs/{prefix}/{prefix}.fai"
   params:
     db_type = "nucl",
-    genome_prefix = "genome_dbs/{prefix}"
+    genome_prefix = "genome_dbs/{prefix}/{prefix}"
   conda: "env/or_env.yaml"
   threads: 1
   resources:
@@ -40,12 +41,12 @@ rule prepare_genomes:
 
 rule tblastn:
   input:
-    db = "genome_dbs/{prefix}.ndb",
+    db = "genome_dbs/{prefix}/{prefix}.ndb",
     query = config['query_fasta']
   output:
     blast = "output/{prefix}/blast/{prefix}.blast.out",
   params:
-    genome_prefix = "genome_dbs/{prefix}",
+    genome_prefix = "genome_dbs/{prefix}/{prefix}",
     evalue = '1e-10',
     fmt = '6'
   conda: "env/or_env.yaml"
@@ -84,7 +85,7 @@ rule blast_to_bed:
 
 rule sort_hits:
   input:
-    fai = "genome_dbs/{prefix}.fai",
+    fai = "genome_dbs/{prefix}/{prefix}.fai",
     bed = "output/{prefix}/beds/main/{prefix}.merged.bed"
   output:
     trunc = "output/{prefix}/beds/truncated/{prefix}.truncated_1.bed",
@@ -274,10 +275,12 @@ rule deep_tm_hmm:
 rule parse_tm:
   input:
     tmm = rules.deep_tm_hmm.output.tmm,
-    peps = 'output/{prefix}/intact_fas/{prefix}.intact_2.fas.transdecoder.pep', 
+    peps = 'output/{prefix}/intact_fas/{prefix}.intact_2.fas.transdecoder.pep',
+    cds = 'output/{prefix}/intact_fas/{prefix}.intact_2.fas.transdecoder.cds', 
     prelim_intact = 'output/{prefix}/intact_fas/{prefix}.intact_2.fas' 
   output:
-    intact = 'output/{prefix}/intact_fas/{prefix}.complete_intact.fas',
+    intact_aa = 'output/{prefix}/intact_fas/{prefix}.aa.complete_intact.fas',
+    intact_cds = 'output/{prefix}/intact_fas/{prefix}.cds.complete_intact.fas',
     pseudo = "output/{prefix}/beds/pseudo/{prefix}.pseudo_3.bed", 
   threads: 1
   resources:
@@ -295,6 +298,16 @@ rule parse_tm:
         else:
           aas[head] += line
 
+    cdss = {}
+    with open(input.cds) as f:
+      for line in f:
+        line = line.strip()
+        if line.startswith('>'):
+          head = line.replace('>','').split()[0]
+          cdss[head] = ''
+        else:
+          cdss[head] += line
+
     #load in all non-truncated intact seqs
     seqs = {}
     with open(input.prelim_intact) as f:
@@ -306,7 +319,8 @@ rule parse_tm:
         else:
           seqs[head] += line
 
-    complete = {}
+    complete_aa = {}
+    complete_cds = {}
     pseudos = set()
 
     #parse gff from deep_tm_hmm
@@ -318,21 +332,26 @@ rule parse_tm:
           aa, tmds = fields[1], fields[-1]
           tmds = int(tmds)
           if tmds == 7: #save seqs with 7 TMDs
-            complete[aa] = aas[aa]
+            complete_aa[aa] = aas[aa]
+            complete_cds[aa] = cdss[aa]
 
     # if not in complete, write to pseudogene file as bed
     # going to account for peps < 250aa also
     with open(output.pseudo, 'w') as out:
       for i in seqs:
         key = i + '.p1'
-        if key not in complete:
+        if key not in complete_aa:
           seq = i.replace(':','\t').replace('-','\t')
           out.write(f"{seq}\n")
 
     #write complete orf seqs to intact
-    with open(output.intact, 'w') as out2:
-      for i, j in complete.items():
+    with open(output.intact_aa, 'w') as out2:
+      for i, j in complete_aa.items():
         out2.write(f">{i}\n{j}\n")
+
+    with open(output.intact_cds, 'w') as out3:
+      for i, j in complete_cds.items():
+        out3.write(f">{i}\n{j}\n")
  
 rule final_gather:
   input:
@@ -340,11 +359,13 @@ rule final_gather:
     trunc2 = "output/{prefix}/beds/truncated/{prefix}.truncated_2.bed", 
     pseud2 = "output/{prefix}/beds/pseudo/{prefix}.pseudo_2.bed",
     pseud3 = "output/{prefix}/beds/pseudo/{prefix}.pseudo_3.bed",
-    intact = 'output/{prefix}/intact_fas/{prefix}.complete_intact.fas',
+    intact_aa = 'output/{prefix}/intact_fas/{prefix}.aa.complete_intact.fas',
+    intact_cds = 'output/{prefix}/intact_fas/{prefix}.cds.complete_intact.fas',
   output:
     final_trunc = 'output/{prefix}/final/{prefix}.complete_truncated.bed',
     final_pseud = 'output/{prefix}/final/{prefix}.complete_pseudo.bed',
-    final_intact = 'output/{prefix}/final/{prefix}.complete_intact.fas',
+    final_intact_aa = 'output/{prefix}/final/{prefix}.aa.complete_intact.fas',
+    final_intact_cds = 'output/{prefix}/final/{prefix}.cds.complete_intact.fas',
   params:
     prefix = "{prefix}"
   threads: 1
@@ -356,5 +377,6 @@ rule final_gather:
       cat {input.trunc1} {input.trunc2} > {output.final_trunc}
       cat {input.pseud2} {input.pseud3} > {output.final_pseud}
 
-      sed 's/>/>{params.prefix}_/g' {input.intact} > {output.final_intact} 
+      sed 's/>/>{params.prefix}_/g' {input.intact_aa} > {output.final_intact_aa}
+      sed 's/>/>{params.prefix}_/g' {input.intact_cds} > {output.final_intact_cds} 
     '''

@@ -49,7 +49,7 @@ torch.set_num_interop_threads(n_threads + 2)
 cat turt_tst.yaml
 
 input_table    : table.tst.csv 
-deep_tmhmm_dir : /path/to//DeepTMHMM-Academic-License-v1.0
+deep_tmhmm_dir : /path/to/DeepTMHMM-Academic-License-v1.0
 query_fasta    : query/intact_reduced.ORs.fas
 ```
 
@@ -76,6 +76,7 @@ snakemake \
         --configfile turtles.yaml \ #any modified yaml file can be used. 
         --sdm conda \ 
         --executor slurm \
+	--keep-going \
         --jobs 20 # number of jobs allowed to simultaneously run on a scheduler
 ```
 
@@ -93,6 +94,7 @@ snakemake \
         --configfile turtle_test.yaml 
         --sdm conda \ 
         --executor slurm \
+	--keep-going \
         --jobs 20 
      ```
    - You can include the `-n` flag to perform a dry run to ensure the workflow is performing properly before submitting.
@@ -104,6 +106,7 @@ snakemake \
         --configfile turtles.yaml 
         --sdm conda \ 
         --executor slurm \
+	--keep-going \
         --jobs 20 
      ``` 
 
@@ -118,24 +121,29 @@ output/tertri/
 │   │   └── tertri.merged.bed
 │   ├── pseudo
 │   │   ├── tertri.pseudo_1.bed
-│   │   └── tertri.pseudo_2.bed
+│   │   ├── tertri.pseudo_2.bed
+│   │   └── tertri.pseudo_3.bed
 │   └── truncated
 │       ├── tertri.truncated_1.bed
 │       └── tertri.truncated_2.bed
 ├── blast
 │   └── tertri.blast.out
 ├── final
-│   ├── tertri.complete_intact.fas
+│   ├── tertri.aa.complete_intact.fas
+    ├── tertri.cds.complete_intact.fas
 │   ├── tertri.complete_pseudo.bed
 │   └── tertri.complete_truncated.bed
+├── pseudo_fas
+    └── tertri.pseudo_1.fas
 └── intact_fas
     ├── deep_tm_out
-    │   ├── TMRs.gff3
+    │   └── TMRs.gff3
     ├── tertri.intact_2.fas.transdecoder_dir
     │   ├── longest_orf.pep
     │   ├── longest_orf.cds
-    │   ├── longest_orf.gff
-    ├── tertri.complete_intact.fas
+    │   └── longest_orf.gff
+    ├── tertri.aa.complete_intact.fas
+    ├── tertri.cds.complete_intact.fas
     ├── tertri.intact_1.fas
     ├── tertri.intact_2.fas
     ├── tertri.intact_2.fas.transdecoder.bed
@@ -151,13 +159,13 @@ output/tertri/
 
 ## Customization
 ### Any genome or set of genomes can be queried for OR sequences using this workflow. The general requirements are as follows:
-  - An amino acid fasta file containing known OR sequences. Modify the path and file name in a yaml file.
+  - An amino acid fasta file containing known OR sequences. Modify the path and file name of `query_fasta` in a yaml file.
   - Genome fasta files stored in `genomes`. Create a csv table where one line has a file name and a shortname. The header must be genome,prefix. Update the `input_table` variable in a yaml file to point to your csv file.
 
 ### Issues to be mindful of
-1. `tblastn` on well assembled (i.e. chromosome level) vertebrate genomes can take a very long time, especially if there are many query sequences to search for. You may need to adjust resources related parameters (runtime, threads, etc) to ensure the job finishes. Y
+1. `tblastn` on well assembled (i.e. chromosome level) vertebrate genomes can take a very long time (2-3 days), especially if there are many query sequences to search for. You may need to adjust resources related parameters (runtime, threads, etc) to ensure the job finishes on time. 
 2. `deepTMHMM` takes the 2nd longest amount of time to complete. It can utilize a GPU to improve performance, the workflow however is not configured to request or use a GPU, due to specific HPC/SLURM GPU configuration. I wanted this workflow to be out of the box usable to anybody.
-3. The workflow should be usable on a desktop computer or non-scheduled server. The command `snakemake -s OR_discovery --configfile <config.yaml> --smd conda --cores 24` should work. Currently `tblastn` quests the most cores at 16. 
+3. The workflow should be usable on a desktop computer or non-scheduled server. The command `snakemake -s OR_discovery --configfile <config.yaml> --smd conda --cores 20 --keep-going` should work. Currently `tblastn` quests the most cores at 10. 
  
 ## General flowchart of the OR discory pipeline.
 
