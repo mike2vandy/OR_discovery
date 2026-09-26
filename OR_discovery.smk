@@ -49,7 +49,7 @@ rule tblastn:
     evalue = '1e-10',
     fmt = '6'
   conda: "env/or_env.yaml"
-  threads: 16
+  threads: 10
   resources:
     mem_mb = 40000,
     runtime = 1200
@@ -59,9 +59,9 @@ rule tblastn:
         -query {input.query} \
         -db {params.genome_prefix} \
         -evalue {params.evalue} \
-        -outfmt {params.fmt} \
+	-outfmt {params.fmt} \
         -num_threads {threads} \
-        -out {output.blast}
+	-out {output.blast}
     '''
 
 rule blast_to_bed:
@@ -137,12 +137,14 @@ rule sort_hits:
     pseudo_file.close()
     intact_file.close()
 
-rule extract_intact:
+rule extract_seqs:
   input:
     genome = lambda wildcards: f"genomes/{GENOMES[wildcards.prefix]}",
-    bed = "output/{prefix}/beds/intact/{prefix}.intact_1.bed"
+    intact_bed = "output/{prefix}/beds/intact/{prefix}.intact_1.bed",
+    pseudo_bed = "output/{prefix}/beds/pseudo/{prefix}.pseudo_1.bed"
   output:
-    fasta = "output/{prefix}/intact_fas/{prefix}.intact_1.fas"
+    intact_fasta = "output/{prefix}/intact_fas/{prefix}.intact_1.fas",
+    pseudo_fasta = "output/{prefix}/pseudo_fas/{prefix}.pseudo_1.fas"
   conda: "env/or_env.yaml"
   threads: 1
   resources:
@@ -152,45 +154,70 @@ rule extract_intact:
     '''
       bedtools getfasta \
         -fi {input.genome} \
-        -bed {input.bed} \
-        -fo {output.fasta}
+        -bed {input.intact_bed} \
+        -fo {output.intact_fasta}
+
+      bedtools getfasta \
+        -fi {input.genome} \
+        -bed {input.pseudo_bed} \
+        -fo {output.pseudo_fasta}
     '''
-   
+
 rule remove_truncated:
   input:
-    fasta = "output/{prefix}/intact_fas/{prefix}.intact_1.fas"
+    pseudo = "output/{prefix}/pseudo_fas/{prefix}.pseudo_1.fas",
+    intact = "output/{prefix}/intact_fas/{prefix}.intact_1.fas"
   output:
     trunc = "output/{prefix}/beds/truncated/{prefix}.truncated_2.bed",
-    intact = 'output/{prefix}/intact_fas/{prefix}.intact_2.fas'
+    intact = 'output/{prefix}/intact_fas/{prefix}.intact_2.fas',
+    pseudo = 'output/{prefix}/beds/pseudo/{prefix}.pseudo_2.bed'
   threads: 1
   resources:
     mem_mb = 20000,
     runtime = 10
   run:
-    #files
-    truncated_file = open(output.trunc, 'a')
-    intact_file = open(output.intact, 'w')
-  
-    #load in intact fasta file, save seqs 
-    seqs = {} 
-    with open(input.fasta) as infile:
-      for line in infile:
-        line = line.strip()
-        if line.startswith('>'):
-          header = line
-          seqs[header] = ''
-        else:
-          seqs[header] += line
+    #store fasta files
+    def store_fasta(filepath):  
+      seqs = {} 
+      with open(filepath) as infile:
+        for line in infile:
+          line = line.strip()
+          if line.startswith('>'):
+            header = line
+            seqs[header] = ''
+          else:
+            seqs[header] += line
+      return seqs
     
-    #check for assembly gaps at flanks, if present truncated 
-    for header, seq in seqs.items():
+    #open output files
+    truncated_file = open(output.trunc, 'w')
+    intact_file = open(output.intact, 'w')
+    pseudo_file = open(output.pseudo, 'w')
+  
+    #load fastas file, save seqs 
+    intact_seqs = store_fasta(input.intact)
+    pseudo_seqs = store_fasta(input.pseudo)
+
+    
+    #check for assembly gaps at intact seq flanks, if present truncated 
+    for header, seq in intact_seqs.items():
+      coord = header.replace('>','').replace(':','\t').replace('-','\t')
       if seq.startswith('NNNNN') or seq.startswith('XXXXX') or seq.endswith('NNNNN') or seq.endswith('XXXXX'):
-        coord = header.replace('>','').replace(':','\t').replace('-','\t')
         print(coord, file = truncated_file)
       else:
         print(f"{header}\n{seq}", file = intact_file)
+
+    #check for assembly gaps at pseudo flanks, if present truncated
+    for header, seq in pseudo_seqs.items():
+      coord = header.replace('>','').replace(':','\t').replace('-','\t')
+      if seq.startswith('NNNNN') or seq.startswith('XXXXX') or seq.endswith('NNNNN') or seq.endswith('XXXXX'):
+        print(coord, file = truncated_file)
+      else:
+        print(coord, file = pseudo_file)
+
     truncated_file.close()
     intact_file.close()
+    pseudo_file.close()
 
 rule extract_orf:
   input:
@@ -229,8 +256,6 @@ rule deep_tm_hmm:
   conda: 'env/deeptmhmm.yaml'
   threads: 8
   resources:
-    #slurm_partition = "msigpu",
-    #gres = "gpu:1",
     mem_mb = 40000,
     runtime = 360
   shell:
@@ -253,7 +278,7 @@ rule parse_tm:
     prelim_intact = 'output/{prefix}/intact_fas/{prefix}.intact_2.fas' 
   output:
     intact = 'output/{prefix}/intact_fas/{prefix}.complete_intact.fas',
-    pseudo = "output/{prefix}/beds/pseudo/{prefix}.pseudo_2.bed", 
+    pseudo = "output/{prefix}/beds/pseudo/{prefix}.pseudo_3.bed", 
   threads: 1
   resources:
     meme_mb = 20000,
@@ -312,9 +337,9 @@ rule parse_tm:
 rule final_gather:
   input:
     trunc1 = "output/{prefix}/beds/truncated/{prefix}.truncated_1.bed",
-    trunc2 = "output/{prefix}/beds/truncated/{prefix}.truncated_2.bed",
-    pseud1 = "output/{prefix}/beds/pseudo/{prefix}.pseudo_1.bed",
+    trunc2 = "output/{prefix}/beds/truncated/{prefix}.truncated_2.bed", 
     pseud2 = "output/{prefix}/beds/pseudo/{prefix}.pseudo_2.bed",
+    pseud3 = "output/{prefix}/beds/pseudo/{prefix}.pseudo_3.bed",
     intact = 'output/{prefix}/intact_fas/{prefix}.complete_intact.fas',
   output:
     final_trunc = 'output/{prefix}/final/{prefix}.complete_truncated.bed',
@@ -329,7 +354,7 @@ rule final_gather:
   shell:
     '''
       cat {input.trunc1} {input.trunc2} > {output.final_trunc}
-      cat {input.pseud1} {input.pseud2} > {output.final_pseud}
+      cat {input.pseud2} {input.pseud3} > {output.final_pseud}
 
       sed 's/>/>{params.prefix}_/g' {input.intact} > {output.final_intact} 
     '''
