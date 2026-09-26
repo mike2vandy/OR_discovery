@@ -76,11 +76,10 @@ snakemake \
         --configfile turtles.yaml \ #any modified yaml file can be used. 
         --sdm conda \ 
         --executor slurm \
-	--keep-going \
+        --keep-going \
         --jobs 20 # number of jobs allowed to simultaneously run on a scheduler
 ```
 
- 
 ## Replicating results in Cockrin et al 20xx:
 ### Once the prerequisites are installed:
 
@@ -94,7 +93,7 @@ snakemake \
         --configfile turtle_test.yaml 
         --sdm conda \ 
         --executor slurm \
-	--keep-going \
+        --keep-going \
         --jobs 20 
      ```
    - You can include the `-n` flag to perform a dry run to ensure the workflow is performing properly before submitting.
@@ -106,7 +105,7 @@ snakemake \
         --configfile turtles.yaml 
         --sdm conda \ 
         --executor slurm \
-	--keep-going \
+        --keep-going \
         --jobs 20 
      ``` 
 
@@ -164,7 +163,7 @@ output/tertri/
 
 ### Issues to be mindful of
 1. `tblastn` on well assembled (i.e. chromosome level) vertebrate genomes can take a very long time (2-3 days), especially if there are many query sequences to search for. You may need to adjust resources related parameters (runtime, threads, etc) to ensure the job finishes on time. 
-2. `deepTMHMM` takes the 2nd longest amount of time to complete. It can utilize a GPU to improve performance, the workflow however is not configured to request or use a GPU, due to specific HPC/SLURM GPU configuration. I wanted this workflow to be out of the box usable to anybody.
+2. `deepTMHMM` takes the 2nd longest amount of time to complete. It can utilize a GPU to improve performance, the workflow however is not configured to request or use a GPU, due to specific HPC/SLURM GPU configurations. I wanted this workflow to be out of the box usable to anybody.
 3. The workflow should be usable on a desktop computer or non-scheduled server. The command `snakemake -s OR_discovery --configfile <config.yaml> --smd conda --cores 20 --keep-going` should work. Currently `tblastn` quests the most cores at 10. 
  
 ## General flowchart of the OR discory pipeline.
