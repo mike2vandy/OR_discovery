@@ -9,7 +9,7 @@
 3. A local copy of DeepTMHMM.
 
 ### Installing snakemake: 
-`conda create -n snakemake -c conda-forge snakemake=9`
+`conda create -n snakemake -c conda-forge -c bioconda snakemake=9`
 
 #### I ran this workflow with SLURM and snakemake-executor-plugins, which required.
 ```
