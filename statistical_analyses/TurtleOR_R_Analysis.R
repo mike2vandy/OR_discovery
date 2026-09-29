@@ -4,6 +4,8 @@ library(phylolm)
 library(ggpubr)
 library(hablar)
 library(ape)
+library(plyr)
+library(cowplot)
 
 #global variables
 turtledata <- read.csv("Turtlegroupings.csv", header = TRUE, row.names = 1) #groupings
@@ -50,6 +52,7 @@ ggsave("Pseudo_prop_by_intact.pdf", Pseudo.plot,
 ###CREATE FUNCTION FOR PCAS AND PLOTS###
 
 #Creates the phylo PCA function for all of the PCAs
+#Note: to change grouping factor for visualization, adjust "Primary.Habitat" to another discrete variable in all 3 lines where it appears
 phyloPCA <- function(newick, norm, meta, loadScale) {
   phyPCA <- phyl.pca(newick, norm, method = 'BM', mode = 'cov')
   
@@ -74,8 +77,8 @@ phyloPCA <- function(newick, norm, meta, loadScale) {
                  arrow = arrow(length = unit(1/2, "picas")),
                  color = "#CC2B18", size = 1) +
     #aquatic #marine #semi-aquatic #terrestrial
-    scale_color_manual(values = c("#C46E42", "#80BB83", "#467076", "#9A3856")) +
-    scale_fill_manual(values = c("#C46E42", "#80BB83", "#467076", "#9A3856")) +
+    scale_color_manual(values = c("#467076", "#9A3856", "#80BB83", "#C46E42")) +
+    scale_fill_manual(values = c("#467076", "#9A3856", "#80BB83", "#C46E42")) +
     geom_point(data = pcAndMeta, 
                aes(x = PC1, y = PC2, color = Primary.Habitat), size = 3) +
     geom_polygon(data = hulls, alpha = 0.3, 
@@ -113,9 +116,8 @@ turtleorcount.pca <- phyl.pca(turtles, turtleorcount.matrix, method = 'BM', mode
 #visualize and save
 intactGraph <- phyloPCA(turtles, turtleorcount.matrix, turtledata, 200)
 plot(intactGraph)
-ggsave("intact_count_PCA.pdf", intactGraph, 
+ggsave("intact_count.pdf", intactGraph, 
        device = 'pdf', units = 'in', height = 6, width = 11)
-turtleorcount.matrix <- data.matrix(turtleor.count)
 
 #Store scores
 turtleorcount.scores <- turtleorcount.pca$S
@@ -238,13 +240,13 @@ turtleor.pseudo.prop.pca <- phyl.pca(turtles, turtleor.pseudo.prop.matrix, metho
 #Visualize and save
 PseudoGraph <- phyloPCA(turtles, turtleor.pseudo.prop.matrix, turtledata, 1)
 plot(PseudoGraph)
-ggsave("pseudo.prop.no55.no1.PCA.5.1.26.pdf", PseudoGraph, 
+ggsave("pseudo.prop.no55.no1.diet.pdf", PseudoGraph, 
        device = 'pdf', units = 'in', height = 6, width = 11)
 
 #set up DF
 turtleor.pseudo.prop.scores <- turtleor.pseudo.prop.pca$S
 turtleor.pseudo.prop.df <- as.data.frame(turtleor.pseudo.prop.scores)
-turtleor.pseudo.prop.df$species <- rownames(turtleor.proportions)
+turtleor.pseudo.prop.df$species <- rownames(turtleor.pseudo.proportions)
 turtleor.pseudo.prop.df$primary_habitat <- turtledata$Primary.Habitat
 turtleor.pseudo.prop.df$diet <- turtledata$Diet
 turtleor.pseudo.prop.df$aquatic_cont <- turtledata$Habitat
