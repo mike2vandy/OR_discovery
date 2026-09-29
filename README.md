@@ -90,7 +90,7 @@ snakemake \
      ```
      snakemake \
         -s OR_discovery.smk \
-        --configfile turtle_test.yaml 
+        --configfile turtle_test.yaml \
         --sdm conda \ 
         --executor slurm \
         --keep-going \
@@ -102,7 +102,7 @@ snakemake \
      ```
      snakemake \
         -s OR_discovery.smk \
-        --configfile turtles.yaml 
+        --configfile turtles.yaml \
         --sdm conda \ 
         --executor slurm \
         --keep-going \
