@@ -19,7 +19,6 @@ pip install snakemake-executor-plugin-slurm
 #or
 
 conda install -c bioconda -c conda-forge snakemake-executor-plugin-slurm
-
 ```
 #### However you may need to be adjust the install for your particular scheduler, i.e.:
 `pip install snakemake-executor-plugin-<scheduler>`
