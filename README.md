@@ -15,6 +15,11 @@
 ```
 conda activate snakemake
 pip install snakemake-executor-plugin-slurm
+
+#or
+
+conda install -c bioconda -c conda-forge snakemake-executor-plugin-slurm
+
 ```
 #### However you may need to be adjust the install for your particular scheduler, i.e.:
 `pip install snakemake-executor-plugin-<scheduler>`
@@ -85,8 +90,9 @@ snakemake \
 
 1. Enter `genomes/` and run the `get_genomes.sh` bash script to download and unzip all queried turtle genomes.
    - `bash get_genomes.sh`
+   - or `bash get_tests.sh` to download the test set of genomes in `table.tst.csv`.
 2. Return to main directory, create a job submission script for your scheduler and add the snakemake line.
-   - Included is a `turtle_test.yaml` config file where `table.tst.csv` includes a subset of genomes and `intact_reduced.ORs.fas` contains a reduced dataset of ORs to query. Run it like:
+   - Included is a `turt_test.yaml` config file where `table.tst.csv` includes a subset of genomes and `intact_reduced.ORs.fas` contains a reduced dataset of ORs to query. Run it like:
      ```
      snakemake \
         -s OR_discovery.smk \

@@ -63,4 +63,7 @@ wget https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/050/000/005/GCA_050000005.1_rP
 wget https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/049/634/645/GCA_049634645.1_ASM4963464v1/GCA_049634645.1_ASM4963464v1_genomic.fna.gz
 wget https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/050/000/005/GCA_050000005.2_rPodUni1.pri/GCA_050000005.2_rPodUni1.pri_genomic.fna.gz
 
+echo "finished downloading genomes"
+echo "unzipping genome files..."
 gunzip *.gz
+echo "finished unzipping genomes"
