@@ -26,7 +26,7 @@ rule prepare_genomes:
   threads: 1
   resources:
     mem_mb = 20000,
-    runtime = 20
+    runtime = 60
   shell:
     '''
        makeblastdb \
@@ -284,7 +284,7 @@ rule parse_tm:
     pseudo = "output/{prefix}/beds/pseudo/{prefix}.pseudo_3.bed", 
   threads: 1
   resources:
-    meme_mb = 20000,
+    mem_mb = 20000,
     runtime = 20
   run:
     #load in transdecoder peps
