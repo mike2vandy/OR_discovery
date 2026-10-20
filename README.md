@@ -91,11 +91,11 @@ snakemake \
    - `bash get_genomes.sh`
    - or `bash get_tests.sh` to download the test set of genomes in `table.tst.csv`.
 2. Return to main directory, create a job submission script for your scheduler and add the snakemake line.
-   - Included is a `turt_test.yaml` config file where `table.tst.csv` includes a subset of genomes and `intact_reduced.ORs.fas` contains a reduced dataset of ORs to query. Run it like:
+   - Included is a `turt_tst.yaml` config file where `table.tst.csv` includes a subset of genomes and `intact_reduced.ORs.fas` contains a reduced dataset of ORs to query. Run it like:
      ```
      snakemake \
         -s OR_discovery.smk \
-        --configfile turt_test.yaml \
+        --configfile turt_tst.yaml \
         --sdm conda \ 
         --executor slurm \
         --keep-going \
@@ -112,7 +112,8 @@ snakemake \
         --executor slurm \
         --keep-going \
         --jobs 20 
-     ``` 
+     ```
+   - Please note, the final counts presented in Conklin et al. 20xx derive from the `intact.ORs.fas` query rather than `intact_reduced.ORs.fas` and excluded sequences not assigned a subfamily by turtleOR.hmm db, so slight deviations in OR counts may occur.
 
 ## Output:
 Results for each genome will be in `output/<prefix>/`. A completed genome should resemble:
@@ -177,3 +178,5 @@ output/tertri/
 
 
 To annotate ORs for you own purposes, store unique genomes in fasta format in `genomes`, modify `table.csv` to reflect genome names and desired prefixes, provide a query of OR aa sequences in fasta format to replace `query/intact.ORs.fas`
+
+If you have any questions or concerns feel free to email me at mike [dot] vandewege [at] gmail [dot] com or raise an issue. 
