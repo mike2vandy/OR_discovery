@@ -294,9 +294,10 @@ rule parse_tm:
         line = line.strip()
         if line.startswith('>'):
           head = line.replace('>','').split()[0]
-          aas[head] = ''
+          key = head.split('.p')[0]
+          aas[key] = ''
         else:
-          aas[head] += line
+          aas[key] += line
 
     cdss = {}
     with open(input.cds) as f:
@@ -304,9 +305,10 @@ rule parse_tm:
         line = line.strip()
         if line.startswith('>'):
           head = line.replace('>','').split()[0]
-          cdss[head] = ''
+          key = head.split('.p')[0]
+          cdss[key] = ''
         else:
-          cdss[head] += line
+          cdss[key] += line
 
     #load in all non-truncated intact seqs
     seqs = {}
@@ -330,6 +332,7 @@ rule parse_tm:
         if "predicted" in line:
           fields = line.split()
           aa, tmds = fields[1], fields[-1]
+          aa = aa.split('.p')[0]
           tmds = int(tmds)
           if tmds == 7: #save seqs with 7 TMDs
             complete_aa[aa] = aas[aa]
@@ -339,7 +342,7 @@ rule parse_tm:
     # going to account for peps < 250aa also
     with open(output.pseudo, 'w') as out:
       for i in seqs:
-        key = i + '.p1'
+        key = i
         if key not in complete_aa:
           seq = i.replace(':','\t').replace('-','\t')
           out.write(f"{seq}\n")
